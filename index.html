@@ -70,7 +70,7 @@ body{font-family:var(--fb);background:var(--off);color:var(--black);min-height:1
 .range-pct.over{color:var(--up);}.range-pct.near{color:var(--warn);}.range-pct.under{color:var(--dn);}
 .bar-bg{height:5px;background:var(--g100);border-radius:99px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:99px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1);max-width:100%;}
-.bar-cons{background:var(--g200);}
+.bar-cons-1{background:rgba(3,247,236,0.3);} .bar-cons-2{background:rgba(82,64,235,0.3);} .bar-cons-3{background:rgba(249,144,248,0.3);}
 .bar-opt-1{background:linear-gradient(90deg,var(--cyan),var(--purple));}.bar-opt-2{background:linear-gradient(90deg,var(--purple),var(--mag));}.bar-opt-3{background:linear-gradient(90deg,var(--mag),var(--cyan));}
 .range-meta{font-size:10px;color:var(--g400);margin-top:3px;}
 .obj-no-data{font-size:12px;color:var(--g400);font-style:italic;padding:8px 0;}
@@ -305,7 +305,8 @@ function renderObjCard(field,sfx,result,mes){
   const clsCons=result>=c?'over':result/c>=0.8?'near':'under';
   const clsOpt=result>=o?'over':result/o>=0.8?'near':'under';
   const optClass=['bar-opt-1','bar-opt-2','bar-opt-3'][['v','i','s'].indexOf(sfx)];
-  body.innerHTML=`<div class="range-row"><div class="range-head"><span class="range-name">Conservador - ${FMT(c)}</span><span class="range-pct ${clsCons}">${pCons}%</span></div><div class="bar-bg"><div class="bar-fill bar-cons" style="width:${Math.min(100,result/c*100)}%"></div></div><div class="range-meta">${result>=c?'Superado en '+FMT(result-c):'Faltan '+FMT(c-result)+' para el conservador'}</div></div><div class="range-row"><div class="range-head"><span class="range-name">Optimista - ${FMT(o)}</span><span class="range-pct ${clsOpt}">${pOpt}%</span></div><div class="bar-bg"><div class="bar-fill ${optClass}" style="width:${Math.min(100,result/o*100)}%"></div></div><div class="range-meta">${result>=o?'Superado en '+FMT(result-o):'Faltan '+FMT(o-result)+' para el optimista'}</div></div><div class="obj-status ${result>=o?'exceeded':result>=c?'ontrack':'below'}">${result>=o?'Sobre el objetivo optimista':result>=c?'Dentro del rango conservador':'Por debajo del conservador'}</div>`;
+  const consClass='bar-cons-'+(['v','i','s'].indexOf(sfx)+1);
+  body.innerHTML=`<div class="range-row"><div class="range-head"><span class="range-name">Conservador - ${FMT(c)}</span><span class="range-pct ${clsCons}">${pCons}%</span></div><div class="bar-bg"><div class="bar-fill ${consClass}" style="width:${Math.min(100,result/c*100)}%"></div></div><div class="range-meta">${result>=c?'Superado en '+FMT(result-c):'Faltan '+FMT(c-result)+' para el conservador'}</div></div><div class="range-row"><div class="range-head"><span class="range-name">Optimista - ${FMT(o)}</span><span class="range-pct ${clsOpt}">${pOpt}%</span></div><div class="bar-bg"><div class="bar-fill ${optClass}" style="width:${Math.min(100,result/o*100)}%"></div></div><div class="range-meta">${result>=o?'Superado en '+FMT(result-o):'Faltan '+FMT(o-result)+' para el optimista'}</div></div><div class="obj-status ${result>=o?'exceeded':result>=c?'ontrack':'below'}">${result>=o?'Sobre el objetivo optimista':result>=c?'Dentro del rango conservador':'Por debajo del conservador'}</div>`;
 }
 function render(){
   const M=MESES,n=M.length;if(!n)return;if(vi<0)vi=0;if(vi>=n)vi=n-1;
