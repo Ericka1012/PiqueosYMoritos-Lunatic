@@ -135,6 +135,24 @@ body{font-family:var(--fb);background:var(--off);color:var(--black);min-height:1
 .pdf-box p{font-size:13px;color:var(--g600);line-height:1.5;}
 .pdf-spinner{width:36px;height:36px;border:3px solid var(--g100);border-top:3px solid var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @media(max-width:640px){.kpi-grid,.obj-grid,.post-kpi-row{grid-template-columns:1fr 1fr;}.charts-row,.post-charts-row{grid-template-columns:1fr;}.hero-inner{flex-direction:column;align-items:flex-start;}}
+
+.trim-selector{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.trim-btn{font-family:var(--fh);font-size:13px;font-weight:700;padding:10px 24px;border-radius:12px;border:1.5px solid var(--g200);background:var(--white);color:var(--g600);cursor:pointer;transition:all 0.15s;}
+.trim-btn:hover{border-color:var(--purple);color:var(--purple);}.trim-btn.active{background:var(--black);border-color:var(--black);color:var(--white);}
+.trim-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.trim-month-breakdown{background:var(--white);border-radius:16px;border:1.5px solid var(--g100);overflow:hidden;margin-bottom:16px;}
+.trim-month-head{padding:14px 18px;border-bottom:0.5px solid var(--g100);}
+.trim-month-title{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--black);}
+.trim-month-sub{font-size:11px;color:var(--g400);margin-top:2px;}
+.trim-table{width:100%;border-collapse:collapse;font-size:12px;}
+.trim-table th{padding:9px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:0.5px solid var(--g100);}
+.trim-table th:not(:first-child){text-align:right;}
+.trim-table td{padding:10px 16px;border-bottom:0.5px solid var(--g100);color:var(--black);}
+.trim-table td:not(:first-child){text-align:right;font-weight:600;}
+.trim-table tr:last-child td{border-bottom:none;}
+.trim-table tr.trim-total td{background:var(--off);font-family:var(--fh);font-weight:700;}
+.trim-no-data{padding:40px;text-align:center;color:var(--g400);font-size:13px;}
+.trim-obj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -173,6 +191,7 @@ body{font-family:var(--fb);background:var(--off);color:var(--black);min-height:1
   <div class="tab-bar">
     <button class="tab-btn active" id="tab-metricas" onclick="switchTab('metricas')">Métricas</button>
     <button class="tab-btn" id="tab-posteos" onclick="switchTab('posteos')">Posteos</button>
+    <button class="tab-btn" id="tab-trimestral" onclick="switchTab('trimestral')">Trimestral</button>
   </div>
   <div class="state-card" id="state-loading"><div class="spinner"></div><h3>Cargando datos</h3><p>Conectando con Google Sheets...</p></div>
   <div class="state-card" id="state-error" style="display:none;"><h3>No se pudieron cargar los datos</h3><p id="error-msg">Verifica tu conexion.</p><button class="retry-btn" onclick="fetchAll()">↻ Reintentar</button></div>
@@ -249,6 +268,49 @@ body{font-family:var(--fb);background:var(--off);color:var(--black);min-height:1
     </div>
   </div>
 
+
+  <!-- TRIMESTRAL -->
+  <div id="tab-content-trimestral" style="display:none;">
+    <div class="trim-selector">
+      <button class="trim-btn active" id="trim-t1" onclick="selectTrim(1)">T1 &middot; Ene-Mar</button>
+      <button class="trim-btn" id="trim-t2" onclick="selectTrim(2)">T2 &middot; Abr-Jun</button>
+      <button class="trim-btn" id="trim-t3" onclick="selectTrim(3)">T3 &middot; Jul-Sep</button>
+      <button class="trim-btn" id="trim-t4" onclick="selectTrim(4)">T4 &middot; Oct-Dic</button>
+      <button class="nav-btn primary" style="margin-left:auto;" onclick="exportPDFTrimestral()">&#8595; PDF Trimestral</button>
+    </div>
+    <div id="trim-no-data" class="trim-no-data" style="display:none;"><p>Sin datos disponibles para este trimestre aun.</p></div>
+    <div id="trim-content">
+      <div class="trim-kpi-grid">
+        <div class="kcard k1"><div class="kcard-label">Visualizaciones totales</div><div class="kcard-num" id="tk-v">-</div><div class="kcard-row"><span class="delta neu" id="tkd-v">-</span></div></div>
+        <div class="kcard k2"><div class="kcard-label">Interacciones totales</div><div class="kcard-num" id="tk-i">-</div><div class="kcard-row"><span class="delta neu" id="tkd-i">-</span></div></div>
+        <div class="kcard k3"><div class="kcard-label">Seguidores ganados</div><div class="kcard-num" id="tk-s">-</div><div class="kcard-row"><span class="delta neu" id="tkd-s">-</span></div></div>
+      </div>
+      <div class="trim-obj-grid">
+        <div class="obj-card"><div class="obj-card-label">Objetivo visualizaciones</div><div class="obj-result" id="tor-v">-</div><div class="obj-divider"></div><div id="tobj-body-v"></div></div>
+        <div class="obj-card"><div class="obj-card-label">Objetivo interacciones</div><div class="obj-result" id="tor-i">-</div><div class="obj-divider"></div><div id="tobj-body-i"></div></div>
+        <div class="obj-card"><div class="obj-card-label">Objetivo seguidores</div><div class="obj-result" id="tor-s">-</div><div class="obj-divider"></div><div id="tobj-body-s"></div></div>
+      </div>
+      <div class="charts-row" style="margin-bottom:16px;">
+        <div class="chart-card">
+          <div class="chart-head"><div class="chart-title">Comparacion mes a mes</div><div class="chart-sub" id="trim-chart-sub">Evolucion dentro del trimestre</div>
+            <div class="legend"><div class="leg"><div class="leg-sq" style="background:#03f7ec"></div>Visualizaciones</div><div class="leg"><div class="leg-sq" style="background:#5240eb"></div>Interacciones</div><div class="leg"><div class="leg-sq" style="background:#f990f8"></div>Seguidores</div></div>
+          </div>
+          <div style="position:relative;height:200px;"><canvas id="c-trim-trend"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head"><div class="chart-title">% vs objetivo trimestral</div><div class="chart-sub">Resultado acumulado vs meta</div></div>
+          <div style="position:relative;height:200px;"><canvas id="c-trim-obj"></canvas></div>
+        </div>
+      </div>
+      <div class="trim-month-breakdown">
+        <div class="trim-month-head"><div class="trim-month-title">Detalle mes a mes</div><div class="trim-month-sub" id="trim-table-sub">-</div></div>
+        <table class="trim-table">
+          <thead><tr><th>Mes</th><th>Visualizaciones</th><th>Interacciones</th><th>Seguidores</th><th>vs anterior</th></tr></thead>
+          <tbody id="trim-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   <div class="footer">
     <div class="footer-l">Reporte Piqueos y Moritos · <span id="fp">-</span> · Google Sheets</div>
     <div>
@@ -273,15 +335,18 @@ function FMT(n){return Math.round(n).toLocaleString('es-EC');}
 function PCT(c,p){if(!p)return null;return((c-p)/p*100).toFixed(1);}
 function switchTab(tab){
   CURRENT_TAB=tab;
-  ['metricas','posteos'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
-    document.getElementById('tab-content-'+t).style.display=t===tab?'block':'none';
+  ['metricas','posteos','trimestral'].forEach(function(t){
+    var btn=document.getElementById('tab-'+t);
+    var content=document.getElementById('tab-content-'+t);
+    if(btn) btn.classList.toggle('active',t===tab);
+    if(content) content.style.display=t===tab?'block':'none';
   });
   document.getElementById('month-nav').style.display=tab==='metricas'&&MESES.length?'flex':'none';
   document.getElementById('post-month-nav').style.display=tab==='posteos'&&POSTEOS.length?'flex':'none';
   document.getElementById('pdf-btn').style.display=tab==='metricas'?'flex':'none';
-  const mes=tab==='metricas'?MESES[vi]?.mes:POSTEOS[pvi]?.mes;
+  var mes=tab==='metricas'?(MESES[vi]?MESES[vi].mes:null):tab==='posteos'?(POSTEOS[pvi]?POSTEOS[pvi].mes:null):null;
   document.getElementById('hero-period').innerHTML=(mes||'—')+' <span>2026</span>';
+  if(tab==='trimestral') renderTrimestral();
 }
 async function fetchAll(){
   setSync('loading','Actualizando...');
@@ -392,6 +457,104 @@ async function exportPDF(){
   try{const{jsPDF}=window.jspdf;const canvas=await html2canvas(document.getElementById('report-root'),{scale:2,useCORS:true,backgroundColor:'#f6f6f4',logging:false});const img=canvas.toDataURL('image/png');const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),ih=pw*(canvas.height/canvas.width);if(ih<=ph){pdf.addImage(img,'PNG',0,0,pw,ih);}else{let pg=0,rem=ih;while(rem>0){if(pg>0)pdf.addPage();const sy=pg*ph*(canvas.height/ih),sh=Math.min(ph,rem)*(canvas.height/ih);const tmp=document.createElement('canvas');tmp.width=canvas.width;tmp.height=sh;tmp.getContext('2d').drawImage(canvas,0,sy,canvas.width,sh,0,0,canvas.width,sh);pdf.addImage(tmp.toDataURL('image/png'),'PNG',0,0,pw,Math.min(ph,rem));rem-=ph;pg++;}}pdf.save('Lunatic-PiqueosYMoritos-'+(MESES[vi]?.mes||'reporte')+'-2026.pdf');}catch(e){alert('Error PDF.');}
   nr.style.display='';ov.classList.remove('show');
 }
+
+var TRIM_ACTUAL = 1;
+var TRIM_TC, TRIM_OC;
+var TRIMESTRES = {1:['Enero','Febrero','Marzo'],2:['Abril','Mayo','Junio'],3:['Julio','Agosto','Septiembre'],4:['Octubre','Noviembre','Diciembre']};
+
+function selectTrim(t) {
+  TRIM_ACTUAL = t;
+  [1,2,3,4].forEach(function(n){
+    var btn = document.getElementById('trim-t'+n);
+    if(btn) btn.className = 'trim-btn' + (n===t?' active':'');
+  });
+  renderTrimestral();
+}
+
+function renderTrimestral() {
+  var mesesTrim = TRIMESTRES[TRIM_ACTUAL];
+  var data = mesesTrim.map(function(m){ return MESES.find(function(r){ return r.mes===m; })||null; }).filter(function(r){ return r!==null; });
+  if(!data.length){
+    document.getElementById('trim-no-data').style.display='block';
+    document.getElementById('trim-content').style.display='none';
+    return;
+  }
+  document.getElementById('trim-no-data').style.display='none';
+  document.getElementById('trim-content').style.display='block';
+  var totV=data.reduce(function(a,r){return a+r.views;},0);
+  var totI=data.reduce(function(a,r){return a+r.inter;},0);
+  var totS=data.reduce(function(a,r){return a+r.seg;},0);
+  document.getElementById('tk-v').textContent=FMT(totV);
+  document.getElementById('tk-i').textContent=FMT(totI);
+  document.getElementById('tk-s').textContent=FMT(totS);
+  var dv=document.getElementById('tkd-v'),di=document.getElementById('tkd-i'),ds=document.getElementById('tkd-s');
+  dv.textContent='Prom. '+FMT(Math.round(totV/data.length))+'/mes';dv.className='delta neu';
+  di.textContent='Prom. '+FMT(Math.round(totI/data.length))+'/mes';di.className='delta neu';
+  ds.textContent='Prom. '+FMT(Math.round(totS/data.length))+'/mes';ds.className='delta neu';
+  var objV={c:0,i:0},objI={c:0,i:0},objS={c:0,i:0};
+  mesesTrim.forEach(function(m){
+    if(OBJ.views[m]){objV.c+=OBJ.views[m].c;objV.i+=(OBJ.views[m].i||OBJ.views[m].o||0);}
+    if(OBJ.inter[m]){objI.c+=OBJ.inter[m].c;objI.i+=(OBJ.inter[m].i||OBJ.inter[m].o||0);}
+    if(OBJ.seg[m]){objS.c+=OBJ.seg[m].c;objS.i+=(OBJ.seg[m].i||OBJ.seg[m].o||0);}
+  });
+  renderTrimObjCard('tor-v','tobj-body-v',totV,objV,1);
+  renderTrimObjCard('tor-i','tobj-body-i',totI,objI,2);
+  renderTrimObjCard('tor-s','tobj-body-s',totS,objS,3);
+  var labels=data.map(function(r){return r.mes.substring(0,3);});
+  if(TRIM_TC)TRIM_TC.destroy();
+  TRIM_TC=new Chart(document.getElementById('c-trim-trend'),{type:'bar',data:{labels:labels,datasets:[{label:'Visualizaciones',data:data.map(function(r){return r.views;}),backgroundColor:'rgba(3,247,236,0.7)',borderRadius:6,yAxisID:'y'},{label:'Interacciones',data:data.map(function(r){return r.inter;}),backgroundColor:'rgba(82,64,235,0.7)',borderRadius:6,yAxisID:'y2'},{label:'Seguidores',data:data.map(function(r){return r.seg;}),backgroundColor:'rgba(249,144,248,0.7)',borderRadius:6,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:12},color:'#090909'},grid:{display:false}},y:{position:'left',ticks:{font:{size:10},color:'#a0a09c',callback:function(v){return v>=1000?(v/1000).toFixed(0)+'K':v;}},grid:{color:'rgba(0,0,0,0.04)'},beginAtZero:true,border:{display:false}},y2:{position:'right',ticks:{font:{size:10},color:'#a0a09c'},grid:{display:false},beginAtZero:true,border:{display:false}}}}});
+  var pV=objV.i?Math.min(100,Math.round(totV/objV.i*100)):0;
+  var pI=objI.i?Math.min(100,Math.round(totI/objI.i*100)):0;
+  var pS=objS.i?Math.min(100,Math.round(totS/objS.i*100)):0;
+  if(TRIM_OC)TRIM_OC.destroy();
+  TRIM_OC=new Chart(document.getElementById('c-trim-obj'),{type:'doughnut',data:{labels:['Visualizaciones','Interacciones','Seguidores'],datasets:[{data:[pV,pI,pS],backgroundColor:['#03f7ec','#5240eb','#f990f8'],borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},color:'#6a6a66',boxWidth:8,padding:10}}}}});
+  var tRows=data.map(function(r,idx){
+    var prev=idx>0?data[idx-1]:null;
+    var vs=prev?'<span class="delta '+(parseFloat(PCT(r.views,prev.views))>=0?'up':'dn')+'" style="font-size:11px;">'+(parseFloat(PCT(r.views,prev.views))>=0?'+':'')+PCT(r.views,prev.views)+'%</span>':'<span class="delta neu" style="font-size:11px;">Primer mes</span>';
+    return '<tr><td style="font-weight:600;">'+r.mes+'</td><td>'+FMT(r.views)+'</td><td>'+FMT(r.inter)+'</td><td>'+FMT(r.seg)+'</td><td>'+vs+'</td></tr>';
+  });
+  tRows.push('<tr class="trim-total"><td>Total T'+TRIM_ACTUAL+'</td><td>'+FMT(totV)+'</td><td>'+FMT(totI)+'</td><td>'+FMT(totS)+'</td><td>-</td></tr>');
+  document.getElementById('trim-tbody').innerHTML=tRows.join('');
+  document.getElementById('trim-table-sub').textContent='T'+TRIM_ACTUAL+' · '+mesesTrim.join(' · ');
+  document.getElementById('trim-chart-sub').textContent=mesesTrim.join(' · ');
+  document.getElementById('hero-period').innerHTML='T'+TRIM_ACTUAL+' <span>2026</span>';
+}
+
+function renderTrimObjCard(resultId,bodyId,result,obj,idx){
+  document.getElementById(resultId).textContent=FMT(result);
+  var body=document.getElementById(bodyId);
+  if(!obj.c&&!obj.i){body.innerHTML='<div style="font-size:12px;color:var(--g400);font-style:italic;">Sin objetivo</div>';return;}
+  var c=obj.c,i=obj.i;
+  var pC=(result/c*100).toFixed(1),pI=(result/i*100).toFixed(1);
+  var clsC=result>=c?'over':result/c>=0.8?'near':'under';
+  var clsI=result>=i?'over':result/i>=0.8?'near':'under';
+  body.innerHTML='<div class="range-row"><div class="range-head"><span class="range-name">Conservador · '+FMT(c)+'</span><span class="range-pct '+clsC+'">'+pC+'%</span></div><div class="bar-bg"><div class="bar-fill bar-cons-'+idx+'" style="width:'+Math.min(100,result/c*100)+'%"></div></div><div class="range-meta-txt">'+(result>=c?'✓ Superado en '+FMT(result-c):'Faltan '+FMT(c-result))+'</div></div><div class="range-row"><div class="range-head"><span class="range-name">Ideal · '+FMT(i)+'</span><span class="range-pct '+clsI+'">'+pI+'%</span></div><div class="bar-bg"><div class="bar-fill bar-ideal-'+idx+'" style="width:'+Math.min(100,result/i*100)+'%"></div></div><div class="range-meta-txt">'+(result>=i?'✓ Superado en '+FMT(result-i):'Faltan '+FMT(i-result))+'</div></div><div class="obj-status '+(result>=i?'exceeded':result>=c?'ontrack':'below')+'">'+(result>=i?'✓ Sobre el ideal':result>=c?'✓ Dentro del conservador':'Por debajo')+'</div>';
+}
+
+async function exportPDFTrimestral(){
+  var mesesTrim=TRIMESTRES[TRIM_ACTUAL];
+  var data=mesesTrim.map(function(m){return MESES.find(function(r){return r.mes===m;})||null;}).filter(function(r){return r;});
+  if(!data.length){alert('Sin datos para este trimestre.');return;}
+  var ov=document.getElementById('pdf-overlay');ov.classList.add('show');
+  var nr=document.querySelector('.nav-right');nr.style.display='none';
+  var trimBtns=document.querySelectorAll('.trim-selector button');trimBtns.forEach(function(b){if(b.classList.contains('nav-btn'))b.style.display='none';});
+  await new Promise(function(r){setTimeout(r,400);});
+  try{
+    var jsPDF=window.jspdf.jsPDF;
+    var content=document.getElementById('tab-content-trimestral');
+    var canvas=await html2canvas(content,{scale:2,useCORS:true,backgroundColor:'#f6f6f4',logging:false});
+    var img=canvas.toDataURL('image/png');
+    var pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),ih=pw*(canvas.height/canvas.width);
+    if(ih<=ph){pdf.addImage(img,'PNG',0,0,pw,ih);}
+    else{var pg=0,rem=ih;while(rem>0){if(pg>0)pdf.addPage();var sy=pg*ph*(canvas.height/ih),sh=Math.min(ph,rem)*(canvas.height/ih);var tmp=document.createElement('canvas');tmp.width=canvas.width;tmp.height=sh;tmp.getContext('2d').drawImage(canvas,0,sy,canvas.width,sh,0,0,canvas.width,sh);pdf.addImage(tmp.toDataURL('image/png'),'PNG',0,0,pw,Math.min(ph,rem));rem-=ph;pg++;}}
+    pdf.save('Lunatic-PiqueosYMoritos-T'+TRIM_ACTUAL+'-2026.pdf');
+  }catch(e){alert('Error PDF.');}
+  nr.style.display='';
+  trimBtns.forEach(function(b){b.style.display='';});
+  ov.classList.remove('show');
+}
+
 fetchAll();
 </script>
 </body>
